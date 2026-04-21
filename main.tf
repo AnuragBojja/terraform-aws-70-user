@@ -26,14 +26,13 @@ resource "terraform_data" "user" {
 connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = local.ssh_loginpass
+    password    =  local.ssh_loginpass
     host        = aws_instance.user.private_ip
   }
   provisioner "file" {
     source      = "user.sh"           # Local path
     destination = "/tmp/user.sh"      # Remote path
   }
-
   provisioner "remote-exec" {
     inline = [ 
         "chmod +x /tmp/user.sh",
