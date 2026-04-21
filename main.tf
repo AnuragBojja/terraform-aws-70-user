@@ -93,3 +93,69 @@ resource "aws_launch_template" "user" {
   )
 }
 
+resource "aws_lb_target_group" "user" {
+  name     = "${local.common_name}-user"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = local.vpc_id
+  deregistration_delay = 60
+
+  health_check {
+    enabled             = true
+    path                = "/health"
+    port                = 8080
+    protocol            = "HTTP"
+    matcher             = "200-299"
+    interval            = 10
+    timeout             = 2
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_placement_group" "test" {
+  name     = "test"
+  strategy = "cluster"
+}
+
+resource "aws_autoscaling_group" "user" {
+  name                      = "${local.common_name}-user"
+  max_size                  = 5
+  min_size                  = 1
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 1
+  force_delete              = false
+  vpc_zone_identifier       = local.private_subnet_ids
+  launch_template {
+    id      = aws_launch_template.user.id
+    version = aws_launch_template.user.latest_version
+  }
+  target_group_arns = [ aws_lb_target_group.user.arn ]
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+    triggers = ["launch_template"]
+  }
+
+  dynamic "tag" {
+    for_each = merge(
+                        local.common_tags,
+                        {
+                            Name = "${local.common_name}-user"
+                        }
+                    )
+    content {
+        key                 = tag.key
+        value               = tag.value
+        propagate_at_launch = true
+    }
+    
+  }
+
+  timeouts {
+    delete = "15m"
+  }
+}
