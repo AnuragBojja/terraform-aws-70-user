@@ -113,11 +113,6 @@ resource "aws_lb_target_group" "user" {
   }
 }
 
-resource "aws_placement_group" "test" {
-  name     = "test"
-  strategy = "cluster"
-}
-
 resource "aws_autoscaling_group" "user" {
   name                      = "${local.common_name}-user"
   max_size                  = 5
@@ -159,3 +154,40 @@ resource "aws_autoscaling_group" "user" {
     delete = "15m"
   }
 }
+
+resource "aws_autoscaling_policy" "user" {
+  name                   = "${local.common_name}-user"
+  autoscaling_group_name = aws_autoscaling_group.user.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 50.0
+  }
+}
+
+resource "aws_lb_listener_rule" "static" {
+  listener_arn = local.backend_alb_listener_arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.user.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/static/*"]
+    }
+  }
+
+  condition {
+    host_header {
+      values = ["example.com"]
+    }
+  }
+}
+
+

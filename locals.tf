@@ -11,4 +11,5 @@ locals {
   private_subnet_id = split(",",data.aws_ssm_parameter.private_subnet_ids.value)[0]
   private_subnet_ids = split(",",data.aws_ssm_parameter.private_subnet_ids.value)
   ssh_loginpass = data.aws_ssm_parameter.ssh_loginpass.value
+  backend_alb_listener_arn = data.aws_ssm_parameter.backend_alb_listener_arn.value
 }
