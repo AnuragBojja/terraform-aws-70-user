@@ -178,14 +178,8 @@ resource "aws_lb_listener_rule" "static" {
   }
 
   condition {
-    path_pattern {
-      values = ["/static/*"]
-    }
-  }
-
-  condition {
     host_header {
-      values = ["example.com"]
+      values = ["user.backend-alb-${var.env}.${var.domain_name}"]
     }
   }
 }

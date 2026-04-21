@@ -4,3 +4,6 @@ variable "project_name" {
 variable "env" {
   default = "dev"
 }
+variable "domain_name" {
+  default = "anuragaws.shop"
+}
