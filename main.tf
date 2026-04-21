@@ -44,7 +44,7 @@ connection {
 resource "aws_ec2_instance_state" "user" {
   instance_id = aws_instance.user.id
   state       = "stopped"
-  depends_on = [ aws_instance.user ]
+  depends_on = [ terraform_data.user ]
 }
 
 resource "aws_ami_from_instance" "user" {
