@@ -40,3 +40,56 @@ connection {
      ]
   }
 }
+
+resource "aws_ec2_instance_state" "user" {
+  instance_id = aws_instance.user.id
+  state       = "stopped"
+  depends_on = [ aws_instance.user ]
+}
+
+resource "aws_ami_from_instance" "user" {
+  name               = "${local.common_name}-user-ami"
+  source_instance_id = aws_ec2_instance_state.user.id # Replace with your instance ID
+  depends_on = [ aws_ec2_instance_state.user ]
+  tags = merge(
+    local.common_tags,
+    {
+        Name = "${local.common_name}-user"
+    }
+  )
+}
+
+resource "aws_launch_template" "user" {
+  name = "${local.common_name}-user"
+  image_id = aws_ami_from_instance.user.id
+  instance_initiated_shutdown_behavior = "terminate"
+  instance_type = "t3.micro"
+  update_default_version = true
+  vpc_security_group_ids = [local.user_sg_id]
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = merge(
+    local.common_tags,
+    {
+        Name = "${local.common_name}-user"
+    }
+  )
+  }
+  tag_specifications {
+    resource_type = "volume"
+    tags = merge(
+    local.common_tags,
+    {
+        Name = "${local.common_name}-user"
+    }
+  )
+  }
+  tags = merge(
+    local.common_tags,
+    {
+        Name = "${local.common_name}-user"
+    }
+  )
+}
+
