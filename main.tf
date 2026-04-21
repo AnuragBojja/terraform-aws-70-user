@@ -95,7 +95,7 @@ resource "aws_launch_template" "user" {
 
 resource "aws_lb_target_group" "user" {
   name     = "${local.common_name}-user"
-  port     = 80
+  port     = 8080
   protocol = "HTTP"
   vpc_id   = local.vpc_id
   deregistration_delay = 60
